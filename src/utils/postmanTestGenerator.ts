@@ -32,7 +32,7 @@ export function generatePostmanTests(jsonData: any, config: TestConfig): string 
     });`);
         
         if (value.length > 0 && typeof value[0] === 'object') {
-          const itemVar = key.slice(0, -1); // Remove 's' from plural
+          const itemVar = key.slice(0, -1);
           groupTests.push(`\n    if (${key}.length > 0) {
         const ${itemVar} = ${key}[0];`);
           
@@ -57,38 +57,9 @@ export function generatePostmanTests(jsonData: any, config: TestConfig): string 
             groupTests.push(`pm.test("[${key}.${objKey}] should exist", function () {
         pm.expect(${key}.${objKey}).to.not.be.undefined;
     });`);
-          } else if (Array.isArray(objValue)) {
-            groupTests.push(`pm.test("[${key}.${objKey}] should be an array", function () {
-        pm.expect(${key}.${objKey}).to.be.an('array');
-    });`);
-            if (objValue.length > 0 && typeof objValue[0] === 'object') {
-              const itemVar = objKey.slice(0, -1);
-              groupTests.push(`\n    if (${key}.${objKey}.length > 0) {
-        const ${itemVar} = ${key}.${objKey}[0];`);
-              for (const [itemKey, itemValue] of Object.entries(objValue[0])) {
-                const type = typeof itemValue;
-                groupTests.push(`        pm.test("[${key}.${objKey}[0].${itemKey}] should be a ${type}", function () {
-            pm.expect(${itemVar}.${itemKey}).to.be.a('${type}');
-        });`);
-              }
-              groupTests.push(`    }`);
-            }
-          } else if (typeof objValue === 'object') {
-            groupTests.push(`pm.test("[${key}.${objKey}] should be an object", function () {
-        pm.expect(${key}.${objKey}).to.be.an('object');
-    });`);
-            for (const [nestedKey, nestedValue] of Object.entries(objValue)) {
-              if (nestedValue === null) {
-                groupTests.push(`pm.test("[${key}.${objKey}.${nestedKey}] should exist", function () {
-        pm.expect(${key}.${objKey}.${nestedKey}).to.not.be.undefined;
-    });`);
-              } else {
-                const nestedType = typeof nestedValue;
-                groupTests.push(`pm.test("[${key}.${objKey}.${nestedKey}] should be a ${nestedType}", function () {
-        pm.expect(${key}.${objKey}.${nestedKey}).to.be.a('${nestedType}');
-    });`);
-              }
-            }
+          } else if (Array.isArray(objValue) || typeof objValue === 'object') {
+            // Create separate group for nested complex objects
+            generateTestsForObject({ [objKey]: objValue }, currentPath);
           } else {
             const type = typeof objValue;
             groupTests.push(`pm.test("[${key}.${objKey}] should be a ${type}", function () {
@@ -97,7 +68,9 @@ export function generatePostmanTests(jsonData: any, config: TestConfig): string 
           }
         }
         
-        tests.push(`// 🔹 ${currentPath}\n(function test${key.charAt(0).toUpperCase() + key.slice(1)}(${key}) {\n    ${groupTests.join('\n\n    ')}\n})(${currentPath});`);
+        if (groupTests.length > 1) {
+          tests.push(`// 🔹 ${currentPath}\n(function test${key.charAt(0).toUpperCase() + key.slice(1)}(${key}) {\n    ${groupTests.join('\n\n    ')}\n})(${currentPath});`);
+        }
       } else {
         const type = typeof value;
         tests.push(`pm.test("[${key}] should be a ${type}", function () {
