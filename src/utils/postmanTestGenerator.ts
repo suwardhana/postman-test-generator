@@ -77,6 +77,18 @@ export function generatePostmanTests(jsonData: any, config: TestConfig): string 
             groupTests.push(`pm.test("[${key}.${objKey}] should be an object", function () {
         pm.expect(${key}.${objKey}).to.be.an('object');
     });`);
+            for (const [nestedKey, nestedValue] of Object.entries(objValue)) {
+              if (nestedValue === null) {
+                groupTests.push(`pm.test("[${key}.${objKey}.${nestedKey}] should exist", function () {
+        pm.expect(${key}.${objKey}.${nestedKey}).to.not.be.undefined;
+    });`);
+              } else {
+                const nestedType = typeof nestedValue;
+                groupTests.push(`pm.test("[${key}.${objKey}.${nestedKey}] should be a ${nestedType}", function () {
+        pm.expect(${key}.${objKey}.${nestedKey}).to.be.a('${nestedType}');
+    });`);
+              }
+            }
           } else {
             const type = typeof objValue;
             groupTests.push(`pm.test("[${key}.${objKey}] should be a ${type}", function () {
@@ -97,9 +109,7 @@ export function generatePostmanTests(jsonData: any, config: TestConfig): string 
   
   generateTestsForObject(jsonData);
   
-  return `const jsonData = pm.response.json();
-
-${tests.join('\n\n')}`;
+  return `const jsonData = pm.response.json();\n\n${tests.join('\n\n')}`;
 }
 
 export function isValidJson(str: string): boolean {
