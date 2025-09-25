@@ -194,8 +194,14 @@
   .mb-1 {
     margin-bottom: calc(var(--spacing) * 1);
   }
+  .flex {
+    display: flex;
+  }
   .w-full {
     width: 100%;
+  }
+  .resize {
+    resize: both;
   }
   .rounded-lg {
     border-radius: var(--radius);
