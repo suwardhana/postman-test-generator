@@ -53,12 +53,32 @@ export function generatePostmanTests(jsonData: any, config: TestConfig): string 
     });`);
         
         for (const [objKey, objValue] of Object.entries(value)) {
-          const type = typeof objValue;
           if (objValue === null) {
             groupTests.push(`pm.test("[${key}.${objKey}] should exist", function () {
         pm.expect(${key}.${objKey}).to.not.be.undefined;
     });`);
+          } else if (Array.isArray(objValue)) {
+            groupTests.push(`pm.test("[${key}.${objKey}] should be an array", function () {
+        pm.expect(${key}.${objKey}).to.be.an('array');
+    });`);
+            if (objValue.length > 0 && typeof objValue[0] === 'object') {
+              const itemVar = objKey.slice(0, -1);
+              groupTests.push(`\n    if (${key}.${objKey}.length > 0) {
+        const ${itemVar} = ${key}.${objKey}[0];`);
+              for (const [itemKey, itemValue] of Object.entries(objValue[0])) {
+                const type = typeof itemValue;
+                groupTests.push(`        pm.test("[${key}.${objKey}[0].${itemKey}] should be a ${type}", function () {
+            pm.expect(${itemVar}.${itemKey}).to.be.a('${type}');
+        });`);
+              }
+              groupTests.push(`    }`);
+            }
+          } else if (typeof objValue === 'object') {
+            groupTests.push(`pm.test("[${key}.${objKey}] should be an object", function () {
+        pm.expect(${key}.${objKey}).to.be.an('object');
+    });`);
           } else {
+            const type = typeof objValue;
             groupTests.push(`pm.test("[${key}.${objKey}] should be a ${type}", function () {
         pm.expect(${key}.${objKey}).to.be.a('${type}');
     });`);
