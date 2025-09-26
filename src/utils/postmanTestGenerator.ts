@@ -1,6 +1,7 @@
 interface TestConfig {
   contentTypeCheck: boolean;
   statusCode: string;
+  timeout: string;
 }
 
 export function generatePostmanTests(jsonData: any, config: TestConfig): string {
@@ -15,6 +16,10 @@ export function generatePostmanTests(jsonData: any, config: TestConfig): string 
   
   tests.push(`pm.test("Status code is ${config.statusCode}", function () {
     pm.response.to.have.status(${config.statusCode});
+});`);
+  
+  tests.push(`pm.test("Response time is less than ${config.timeout}ms", function () {
+    pm.expect(pm.response.responseTime).to.be.below(${config.timeout});
 });`);
   
   function generateTestsForObject(obj: any, path = 'jsonData', parentKey = '') {

@@ -1,8 +1,10 @@
 interface ConfigPanelProps {
   contentTypeCheck: boolean;
   statusCode: string;
+  timeout: string;
   onContentTypeChange: (checked: boolean) => void;
   onStatusCodeChange: (code: string) => void;
+  onTimeoutChange: (timeout: string) => void;
   darkMode: boolean;
   onThemeToggle: () => void;
 }
@@ -10,8 +12,10 @@ interface ConfigPanelProps {
 function ConfigPanel({ 
   contentTypeCheck, 
   statusCode, 
+  timeout,
   onContentTypeChange, 
   onStatusCodeChange,
+  onTimeoutChange,
   darkMode,
   onThemeToggle 
 }: ConfigPanelProps) {
@@ -59,6 +63,23 @@ function ConfigPanel({
           <option value="404">404</option>
           <option value="500">500</option>
         </select>
+      </label>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        Timeout (ms):
+        <input
+          type="number"
+          value={timeout}
+          onChange={(e) => onTimeoutChange(e.target.value)}
+          style={{
+            padding: '4px 8px',
+            borderRadius: '4px',
+            border: `1px solid ${borderColor}`,
+            backgroundColor: darkMode ? '#4a5568' : 'white',
+            color: textColor,
+            width: '80px'
+          }}
+        />
       </label>
 
       <button
